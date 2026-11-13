@@ -15,11 +15,14 @@ fn main() {
         s.spawn(|| {
             for v in 1..=VERSIONS {
                 config.store(v, Ordering::Relaxed); // write the config...
-                ready.store(v, Ordering::Relaxed); // ...then say it is ready
+                // ...then publish it: everything written before this store travels with it.
+                ready.store(v, Ordering::Release);
             }
         });
         loop {
-            let promised = ready.load(Ordering::Relaxed);
+            // Acquire pairs with the Release: seeing version `v` here means seeing all that
+            // was written before it was published.
+            let promised = ready.load(Ordering::Acquire);
             let got = config.load(Ordering::Relaxed);
             reads += 1;
             if got < promised {
