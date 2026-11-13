@@ -17,10 +17,11 @@ impl CasLock {
     }
 
     pub fn lock(&self) {
-        // "If it is still false, make it true." Err means someone else got there first.
+        // "If it is still false, make it true." Err means someone else got there first, or,
+        // with the weak version, that the CPU gave up for a moment: we retry either way.
         while self
             .locked
-            .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
+            .compare_exchange_weak(false, true, Ordering::Relaxed, Ordering::Relaxed)
             .is_err()
         {
             spin_loop();
