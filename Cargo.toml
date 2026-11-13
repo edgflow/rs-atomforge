@@ -8,3 +8,6 @@ description = "ATOMFORGE: a job runner's core, rebuilt from its incident report"
 
 [target.'cfg(loom)'.dependencies]
 loom = "0.7"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(loom)'] }
