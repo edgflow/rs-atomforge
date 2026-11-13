@@ -3,4 +3,5 @@
 //! then failed in production. This crate rebuilds it, one symptom at a time.
 
 pub mod broken_lock;
+pub mod cas_lock;
 pub mod counter;
