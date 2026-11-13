@@ -19,16 +19,20 @@ impl CasLock {
     pub fn lock(&self) {
         // "If it is still false, make it true." Err means someone else got there first, or,
         // with the weak version, that the CPU gave up for a moment: we retry either way.
+        // Acquire on success: everything the last owner wrote before unlocking is visible
+        // to us now. A failed attempt reads nothing we use, so it stays Relaxed.
         while self
             .locked
-            .compare_exchange_weak(false, true, Ordering::Relaxed, Ordering::Relaxed)
+            .compare_exchange_weak(false, true, Ordering::Acquire, Ordering::Relaxed)
             .is_err()
         {
             spin_loop();
         }
     }
 
+    /// Release: everything we wrote while holding the lock travels with this store, to
+    /// whoever acquires the lock next.
     pub fn unlock(&self) {
-        self.locked.store(false, Ordering::Relaxed);
+        self.locked.store(false, Ordering::Release);
     }
 }
