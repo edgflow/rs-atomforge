@@ -6,3 +6,4 @@ pub mod broken_lock;
 pub mod cas_lock;
 pub mod counter;
 pub mod spinlock;
+mod sync;
