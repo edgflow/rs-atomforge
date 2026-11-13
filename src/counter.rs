@@ -15,10 +15,12 @@ impl JobCounter {
         }
     }
 
-    /// One more job done. Every load and every store here is atomic.
+    /// One more job done: read, add one and write back, as one indivisible step.
+    ///
+    /// `Relaxed` is enough: this counter stands alone. Nothing else is published through
+    /// it, so the only promise we need is that no increment is lost.
     pub fn finish(&self) {
-        let done = self.done.load(Ordering::Relaxed);
-        self.done.store(done + 1, Ordering::Relaxed);
+        self.done.fetch_add(1, Ordering::Relaxed);
     }
 
     pub fn finished(&self) -> usize {
