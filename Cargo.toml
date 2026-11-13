@@ -1,0 +1,7 @@
+[package]
+name = "atomforge"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.100"
+license = "MIT"
+description = "ATOMFORGE: a job runner's core, rebuilt from its incident report"
