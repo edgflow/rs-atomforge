@@ -7,12 +7,27 @@ use std::hint::spin_loop;
 use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicBool, Ordering};
 
+/// A spin lock that owns its data.
+///
+/// It can be shared between threads only if `T: Send`. An `Rc` must never reach two
+/// threads, so a lock around one can't be shared:
+///
+/// ```compile_fail
+/// fn shared<T: Sync>(_: &T) {}
+/// shared(&atomforge::spinlock::SpinLock::new(std::rc::Rc::new(1)));
+/// ```
 pub struct SpinLock<T> {
     locked: AtomicBool,
     // The one way to mutate through a shared reference. It synchronizes nothing itself:
     // the lock is what makes its use correct.
     data: UnsafeCell<T>,
 }
+
+// SAFETY: sharing a `&SpinLock<T>` between threads hands out access to the `T` inside, one
+// thread at a time: the lock lets only one guard exist, and Release/Acquire carries each
+// owner's writes to the next. So the `T` moves from thread to thread, which is exactly what
+// `T: Send` allows. (`Send` for `SpinLock<T>` itself is automatic.)
+unsafe impl<T: Send> Sync for SpinLock<T> {}
 
 impl<T> SpinLock<T> {
     pub const fn new(value: T) -> Self {
