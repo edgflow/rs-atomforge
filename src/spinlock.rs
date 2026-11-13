@@ -97,6 +97,6 @@ impl<T> Drop for SpinLockGuard<'_, T> {
     /// owner, whose Acquire sees them.
     fn drop(&mut self) {
         self.data = None; // our access ends here, while we still hold the lock...
-        self.lock.locked.store(false, Ordering::Release); // ...and only then is it free
+        self.lock.locked.store(false, Ordering::Relaxed); // ...and only then is it free
     }
 }
